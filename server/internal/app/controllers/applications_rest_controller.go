@@ -8,19 +8,19 @@ import (
 	"go.uber.org/zap"
 )
 
-type ApplicationsController struct {
+type ApplicationsRestController struct {
 	service services.ApplicationsService
 	logger  *zap.Logger
 }
 
-func NewApplicationsController(s services.ApplicationsService, l *zap.Logger) *ApplicationsController {
-	return &ApplicationsController{
+func NewApplicationsRestController(s services.ApplicationsService, l *zap.Logger) *ApplicationsRestController {
+	return &ApplicationsRestController{
 		service: s,
 		logger:  l,
 	}
 }
 
-func (c *ApplicationsController) GetApplicationNames() func(w http.ResponseWriter, r *http.Request) {
+func (c *ApplicationsRestController) GetApplicationNames() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		appNames, err := c.service.GetApplicationNames()
 		if err != nil {

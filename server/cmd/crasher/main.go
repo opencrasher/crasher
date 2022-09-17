@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"server/internal/app"
 	"server/internal/app/controllers"
-	"server/internal/app/repositories/mongodb_repository"
+	mongodb_repositories "server/internal/app/repositories/mongodb_repository"
 	"server/internal/app/services"
 
 	"github.com/gorilla/mux"
@@ -51,8 +51,8 @@ func main() {
 	appsService := services.NewApplicationsService(appsRepo, logger)
 	coreDumpsService := services.NewCoreDumpsService(coreDumpsRepo, logger)
 
-	appsController := controllers.NewApplicationsController(appsService, logger)
-	coreDumpsController := controllers.NewCoreDumpsController(coreDumpsService, logger)
+	appsController := controllers.NewApplicationsRestController(appsService, logger)
+	coreDumpsController := controllers.NewCoreDumpsRestController(coreDumpsService, logger)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/core_dumps", coreDumpsController.GetCoreDumps()).Methods("GET")

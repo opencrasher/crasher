@@ -1,0 +1,9 @@
+syntax = "proto3";
+package crasher;
+option go_package = "github.com/VladimirBalun/Crashser/server/pkg/grpc/generated/crasher";
+
+message OsInfo {
+    string name = 1;
+	string version = 2;
+	string architecture = 3;
+}
