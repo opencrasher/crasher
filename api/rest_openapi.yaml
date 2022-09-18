@@ -1,0 +1,335 @@
+openapi: 3.0.0
+
+tags:
+  - name: immutable
+  - name: mutable
+
+info:
+  title: Crasher REST API
+  description: Current API describes UI interaction with Crasher
+  version: 1.0.0
+
+paths:
+  /applications:
+    get:
+      summary: Get application names
+      description: Method returns application names that have core dumps
+      tags:
+        - immutable
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  applications:
+                    type: array
+                    items:
+                      type: string
+                      description: name of the application
+                required:
+                  - applications
+              examples:
+                applications:
+                  value:
+                    - "auth-service"
+                    - "web-scraper-service"
+                    - "seller-service"
+        500:
+          description: Server error
+
+  /core_dumps:
+    get:
+      summary: Get core dump previews
+      description: Method returns core dump previews with pagination
+      parameters:
+        - in: query
+          name: minTimestamp
+          description: min core dump creation time
+          schema:
+            type: integer
+        - in: query
+          name: maxTimestamp
+          description: max core dump creation time
+          schema:
+            type: integer
+        - in: query
+          name: application
+          description: application name
+          schema:
+            type: string
+        - in: query
+          name: offset
+          description: core dumps offset for pagination page
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          description: core dumps limit for pagination page
+          required: true
+          schema:
+            type: integer
+      tags:
+        - immutable
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pagination:
+                    type: object
+                    properties:
+                      totalSize:
+                        type: integer
+                        description: total size core dumps by this request
+                      prev:
+                        type: string
+                        description: url path for previous pagination page
+                      self:
+                        type: string
+                        description: url path for current pagination page
+                      next:
+                        type: string
+                        description: url path for next pagination page
+                    required:
+                      - totalSize
+                      - self
+                  coreDumps:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: core dump id
+                        status:
+                          type: number
+                          description: core dump status
+                          enum:
+                            - 0
+                            - 1
+                            - 2
+                            - 3
+                        timestamp:
+                          type: number
+                          description: core dump creation time
+                        appInfo:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: name of the application
+                            version:
+                              type: string
+                              description: version of the application
+                        osInfo:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: description of the operating system
+                      required:
+                        - id
+                        - status
+                        - timestamp
+                required:
+                  - pagination
+                  - coreDumps
+              examples:
+                example:
+                  value:
+                    pagination:
+                      value:
+                        totalSize: 127
+                        prev: "/core_dumps?minTimestamp={minTimestamp}&maxTimestamp={maxTimestamp}&application={application}&offset={start}&limit={limit}"
+                        self: "/core_dumps?minTimestamp={minTimestamp}&maxTimestamp={maxTimestamp}&application={application}&offset={start}&limit={limit}"
+                        next: "/core_dumps?minTimestamp={minTimestamp}&maxTimestamp={maxTimestamp}&application={application}&offset={start}&limit={limit}"
+                    coreDumps:
+                      - id: "507f1f77bcf86cd799439011"
+                        status: 1
+                        timestamp: 1663355412
+                        appInfo:
+                          value:
+                            name: "auth-service"
+                            version: "1.5.45"
+                        osInfo:
+                          value:
+                            name: "windows 10"
+        400:
+          description: Bad request
+        500:
+          description: Server error
+    delete:
+      summary: Delete all core dumps
+      description: Method removes all core dumps
+      tags:
+        - mutable
+      responses:
+        200:
+          description: Ok
+        500:
+          description: Server error
+
+  /core_dump/{id}:
+    get:
+      summary: Get core dump by id
+      description: Method returns all the information about core dump by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Core dump id
+          schema:
+            type : string
+      tags:
+        - immutable
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coreDump:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: core dump id
+                      data:
+                        type: string
+                        description: core dump data
+                      status:
+                        type: number
+                        description: core dump status
+                        enum:
+                          - 0
+                          - 1
+                          - 2
+                          - 3
+                      timestamp:
+                        type: number
+                        description: core dump creation time
+                      appInfo:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: name of the application
+                          version:
+                            type: string
+                            description: version of the application
+                          language:
+                            type: string
+                            description: language of the application
+                      osInfo:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: name of the operating system
+                          version:
+                            type: string
+                            description: version of the operating system
+                          architecture:
+                            type: string
+                            description: architecture of the operating system
+                    required:
+                      - id
+                      - data
+                      - status
+                      - timestamp
+                required:
+                  - coreDump
+              examples:
+                example:
+                  value:
+                    coreDump:
+                      value:
+                        value:
+                          id: "507f1f77bcf86cd799439011"
+                          data: "goroutine 1 [running]:main.Example(0x2080c3f50, 0x2, 0x4, 0x425c0, 0x5, 0xa) /Users/bill/Spaces/Go/Projects/src/github.com/goinaction/code/temp/main.go:9 +0x64 main.main() /Users/bill/Spaces/Go/Projects/src/github.com/goinaction/code/temp/main.go:5 +0x85"
+                          status: 1
+                          timestamp: 1663355412
+                          appInfo:
+                            value:
+                              name: "auth-service"
+                              version: "1.5.45"
+                              language: "go"
+                          osInfo:
+                            value:
+                              name: "windows 10"
+                              version: "21H2"
+                              architecture: "x64"
+        404:
+          description: Not found
+        500:
+          description: Server error
+    put:
+      summary: Update core dump by id
+      description: Method updates core dump by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Core dump id
+          schema:
+            type : string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                  description: core dump status
+                  enum:
+                    - 0
+                    - 1
+                    - 2
+                    - 3
+              required:
+                - status
+            examples:
+              example:
+                value:
+                  status: 2
+      tags:
+        - mutable
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Bad request
+        404:
+          description: Not found
+        500:
+          description: Server error
+    delete:
+      summary: Delete core dump by id
+      description: Method removes core dump by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Core dump id
+          schema:
+            type : string
+      tags:
+        - mutable
+      responses:
+        200:
+          description: Ok
+        404:
+          description: Not found
+        500:
+          description: Server error
