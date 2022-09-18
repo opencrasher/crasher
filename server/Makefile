@@ -19,3 +19,4 @@ lint:
 run:
 	@export CRASHER_SERVER_ADDRESS=:8080
 	@go run cmd/crasher/main.go
+

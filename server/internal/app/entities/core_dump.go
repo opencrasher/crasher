@@ -2,8 +2,6 @@ package entities
 
 import (
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type CoreDumpStatus int
@@ -16,16 +14,16 @@ const (
 )
 
 type CoreDump struct {
-	ID         primitive.ObjectID
+	ID         string
 	OsInfo     *OSInfo
 	AppInfo    *AppInfo
 	Status     CoreDumpStatus
 	Data       string
 	Timestamp  time.Time
-	Extensions []Extensions
+	Extensions []Extension
 }
 
-type Extensions struct {
+type Extension struct {
 	Key   string
 	Value string
 }
@@ -54,6 +52,14 @@ func (c *CoreDump) GetTimestamp() time.Time {
 	return c.Timestamp
 }
 
+func (c *CoreDump) GetExtension(index int) *Extension {
+	return &c.Extensions[index]
+}
+
+func (c *CoreDump) GetExtensions() *[]Extension {
+	return &c.Extensions
+}
+
 func (c *CoreDump) SetOSInfo(info *OSInfo) {
 	c.OsInfo = info
 }
@@ -72,4 +78,9 @@ func (c *CoreDump) SetData(data string) {
 
 func (c *CoreDump) SetTimestamp(timestamp time.Time) {
 	c.Timestamp = timestamp
+}
+
+func (c *CoreDump) SetExtensions(key, value string) {
+	extension := &Extension{Key: key, Value: value}
+	c.Extensions = append(c.Extensions, *extension)
 }

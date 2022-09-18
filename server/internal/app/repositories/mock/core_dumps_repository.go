@@ -76,11 +76,26 @@ func (mr *MockCoreDumpsRepositoryMockRecorder) DeleteCoreDump(id interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCoreDump", reflect.TypeOf((*MockCoreDumpsRepository)(nil).DeleteCoreDump), id)
 }
 
+// GetCoreDumpByID mocks base method.
+func (m *MockCoreDumpsRepository) GetCoreDumpByID(id string) (entities.CoreDump, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCoreDumpByID", id)
+	ret0, _ := ret[0].(entities.CoreDump)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCoreDumpByID indicates an expected call of GetCoreDumpByID.
+func (mr *MockCoreDumpsRepositoryMockRecorder) GetCoreDumpByID(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCoreDumpByID", reflect.TypeOf((*MockCoreDumpsRepository)(nil).GetCoreDumpByID), id)
+}
+
 // GetCoreDumps mocks base method.
-func (m *MockCoreDumpsRepository) GetCoreDumps(setters ...entities.OptionsMongo) ([]entities.CoreDump, error) {
+func (m *MockCoreDumpsRepository) GetCoreDumps(parameters ...interface{}) ([]entities.CoreDump, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{}
-	for _, a := range setters {
+	for _, a := range parameters {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetCoreDumps", varargs...)
@@ -90,7 +105,21 @@ func (m *MockCoreDumpsRepository) GetCoreDumps(setters ...entities.OptionsMongo)
 }
 
 // GetCoreDumps indicates an expected call of GetCoreDumps.
-func (mr *MockCoreDumpsRepositoryMockRecorder) GetCoreDumps(setters ...interface{}) *gomock.Call {
+func (mr *MockCoreDumpsRepositoryMockRecorder) GetCoreDumps(parameters ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCoreDumps", reflect.TypeOf((*MockCoreDumpsRepository)(nil).GetCoreDumps), setters...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCoreDumps", reflect.TypeOf((*MockCoreDumpsRepository)(nil).GetCoreDumps), parameters...)
+}
+
+// UpdateCoreDump mocks base method.
+func (m *MockCoreDumpsRepository) UpdateCoreDump(coreDump entities.CoreDump) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateCoreDump", coreDump)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateCoreDump indicates an expected call of UpdateCoreDump.
+func (mr *MockCoreDumpsRepositoryMockRecorder) UpdateCoreDump(coreDump interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCoreDump", reflect.TypeOf((*MockCoreDumpsRepository)(nil).UpdateCoreDump), coreDump)
 }

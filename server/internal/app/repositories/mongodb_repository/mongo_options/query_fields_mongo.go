@@ -1,4 +1,4 @@
-package entities
+package mongo_options
 
 import (
 	"go.mongodb.org/mongo-driver/bson"

@@ -20,16 +20,10 @@ type ApplicationsRepository struct {
 
 var _ repositories.ApplicationsRepository = (*ApplicationsRepository)(nil)
 
-func NewApplicationsRepository(db *mongo.Client, l *zap.Logger) *ApplicationsRepository {
+func NewApplicationsRepository(db *mongo.Client, l *zap.Logger, timeout int) *ApplicationsRepository {
 	mongoDB := db.Database("crasher")
 	collection := mongoDB.Collection("coredumps")
-	timeout, err := ParseCtxTimeoutEnv()
-	if err != nil {
-		l.Fatal(
-			"failed to parse ctx timeout env",
-			zap.Error(err),
-		)
-	}
+
 	return &ApplicationsRepository{
 		dbClient:   db,
 		collection: collection,
