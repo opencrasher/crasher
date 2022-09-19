@@ -20,10 +20,10 @@ type CoreDump struct {
 	Status     CoreDumpStatus
 	Data       string
 	Timestamp  time.Time
-	Extensions []Extension
+	Extensions []CoreDumpExtension
 }
 
-type Extension struct {
+type CoreDumpExtension struct {
 	Key   string
 	Value string
 }
@@ -52,12 +52,8 @@ func (c *CoreDump) GetTimestamp() time.Time {
 	return c.Timestamp
 }
 
-func (c *CoreDump) GetExtension(index int) *Extension {
-	return &c.Extensions[index]
-}
-
-func (c *CoreDump) GetExtensions() *[]Extension {
-	return &c.Extensions
+func (c *CoreDump) GetExtensions() []CoreDumpExtension {
+	return c.Extensions
 }
 
 func (c *CoreDump) SetOSInfo(info *OSInfo) {
@@ -80,7 +76,7 @@ func (c *CoreDump) SetTimestamp(timestamp time.Time) {
 	c.Timestamp = timestamp
 }
 
-func (c *CoreDump) SetExtensions(key, value string) {
-	extension := &Extension{Key: key, Value: value}
+func (c *CoreDump) AddExtensions(key, value string) {
+	extension := &CoreDumpExtension{Key: key, Value: value}
 	c.Extensions = append(c.Extensions, *extension)
 }

@@ -11,7 +11,7 @@ type CoreDumpsService interface {
 	GetCoreDumps(parameters ...interface{}) ([]entities.CoreDump, error)
 	GetCoreDumpByID(id string) (entities.CoreDump, error)
 	AddCoreDump(coreDump entities.CoreDump) error
-	UpdateCoreDump(parameters interface{}) error
+	UpdateCoreDump(parameters ...interface{}) error
 	DeleteCoreDump(id string) error
 	DeleteAllCoreDumps() error
 }
@@ -40,7 +40,7 @@ func (s *CoreDumpServiceImpl) AddCoreDump(coreDump entities.CoreDump) error {
 	return nil
 }
 
-func (r *CoreDumpServiceImpl) UpdateCoreDump(parameters interface{}) error {
+func (r *CoreDumpServiceImpl) UpdateCoreDump(parameters ...interface{}) error {
 	return nil
 }
 

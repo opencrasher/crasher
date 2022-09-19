@@ -3,28 +3,28 @@ package mongodb_repository
 import (
 	"errors"
 	mock_repositories "server/internal/app/repositories/mock"
+	"server/internal/app/repositories/mongodb_repository/mongo_configs"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
 func TestNewApplicationsRepository(t *testing.T) {
-	ctxTimeout := 5
+	ctxTimeout := time.Duration(5) * time.Second
 	applicationsRepository := NewApplicationsRepository(&mongo.Client{}, &zap.Logger{}, ctxTimeout)
 
-	require.Equal(t, "crasher", applicationsRepository.collection.Database().Name())
-	require.Equal(t, "coredumps", applicationsRepository.collection.Name())
-	require.Equal(t, &zap.Logger{}, applicationsRepository.logger)
+	require.Equal(t, mongo_configs.DBname, applicationsRepository.collection.Database().Name())
+	require.Equal(t, mongo_configs.CollectionName, applicationsRepository.collection.Name())
+	require.NotNil(t, applicationsRepository.logger)
 	require.Equal(t, ctxTimeout, applicationsRepository.timeout)
 }
 func TestGetApplicationNames(t *testing.T) {
 	t.Parallel()
-
-	slowResponse := time.Second * 6
 
 	c := gomock.NewController(t)
 	defer c.Finish()
@@ -57,7 +57,7 @@ func TestGetApplicationNames(t *testing.T) {
 			stubs: func(r *mock_repositories.MockApplicationsRepository, slice []string) {
 				r.EXPECT().GetApplicationNames().Return(slice, nil)
 			},
-			slice: nil,
+			slice: []string{},
 			error: nil,
 		},
 		{
@@ -65,18 +65,18 @@ func TestGetApplicationNames(t *testing.T) {
 			stubs: func(r *mock_repositories.MockApplicationsRepository, slice []string) {
 				r.EXPECT().GetApplicationNames().Return(slice, errors.New("error"))
 			},
-			slice: nil,
+			slice: []string{},
 			error: errors.New("error"),
 		},
 		{
 			name: "get timeout error while getting application names",
 			stubs: func(r *mock_repositories.MockApplicationsRepository, slice []string) {
 				r.EXPECT().GetApplicationNames().DoAndReturn(func() ([]string, error) {
-					time.Sleep(slowResponse)
+					time.Sleep(6 * time.Second)
 					return slice, errors.New("error")
 				})
 			},
-			slice: nil,
+			slice: []string{},
 			error: errors.New("error"),
 		},
 	}
@@ -85,8 +85,8 @@ func TestGetApplicationNames(t *testing.T) {
 			test.stubs(r, test.slice)
 
 			result, err := r.GetApplicationNames()
-			require.Equal(t, test.error, err)
-			require.Equal(t, len(test.slice), len(result))
+			assert.Equal(t, test.error, err)
+			assert.Equal(t, len(test.slice), len(result))
 		})
 	}
 }

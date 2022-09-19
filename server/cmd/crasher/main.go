@@ -8,6 +8,7 @@ import (
 	"server/internal/app/repositories/mongodb_repository"
 	"server/internal/app/services"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -46,7 +47,11 @@ func main() {
 		}
 	}()
 
-	timeout, err := strconv.Atoi(app.CtxTimeout)
+	if app.DatabaseTimeout == "" {
+		app.DatabaseTimeout = "5"
+	}
+	
+	timeoutInt, err := strconv.Atoi(app.DatabaseTimeout)
 	if err != nil {
 		logger.Fatal(
 			"failed to parse timeout env",
@@ -54,8 +59,10 @@ func main() {
 		)
 	}
 
+	timeout := time.Duration(timeoutInt) * time.Second
+
 	appsRepo := mongodb_repository.NewApplicationsRepository(dbClient, logger, timeout)
-	coreDumpsRepo := mongodb_repository.NewCoreDumpsRepository(dbClient, logger,timeout)
+	coreDumpsRepo := mongodb_repository.NewCoreDumpsRepository(dbClient, logger, timeout)
 
 	appsService := services.NewApplicationsService(appsRepo, logger)
 	coreDumpsService := services.NewCoreDumpsService(coreDumpsRepo, logger)

@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"server/internal/app/entities"
 	mock_repositories "server/internal/app/repositories/mock"
+	"server/internal/app/repositories/mongodb_repository/mongo_configs"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
@@ -17,25 +19,22 @@ import (
 func TestNewCoreDumpsRepository(t *testing.T) {
 	t.Parallel()
 
-	ctxTimeout := 5
+	ctxTimeout := time.Duration(5) * time.Second
+	coredumpsRepository := NewCoreDumpsRepository(&mongo.Client{}, &zap.Logger{}, ctxTimeout)
 
-	applicationsRepository := NewApplicationsRepository(&mongo.Client{}, &zap.Logger{}, ctxTimeout)
-
-	require.Equal(t, "crasher", applicationsRepository.collection.Database().Name())
-	require.Equal(t, "coredumps", applicationsRepository.collection.Name())
-	require.Equal(t, &zap.Logger{}, applicationsRepository.logger)
-	require.Equal(t, ctxTimeout, applicationsRepository.timeout)
+	require.Equal(t, mongo_configs.DBname, coredumpsRepository.collection.Database().Name())
+	require.Equal(t, mongo_configs.CollectionName, coredumpsRepository.collection.Name())
+	require.NotNil(t, coredumpsRepository.logger)
+	require.Equal(t, ctxTimeout, coredumpsRepository.timeout)
 }
 func TestAddCoreDump(t *testing.T) {
 	t.Parallel()
-
-	slowResponse := time.Second * 6
 
 	c := gomock.NewController(t)
 	defer c.Finish()
 	r := mock_repositories.NewMockCoreDumpsRepository(c)
 
-	randomDump := generateRandomSliceOfCoreDumps(1)
+	randomDump := generateSliceOfCoreDumps(1)
 	tests := []struct {
 		name  string
 		dump  entities.CoreDump
@@ -51,7 +50,7 @@ func TestAddCoreDump(t *testing.T) {
 			error: nil,
 		},
 		{
-			name: "add dump error",
+			name: "add dump with error",
 			dump: entities.CoreDump{},
 			stubs: func(r *mock_repositories.MockCoreDumpsRepository, dump entities.CoreDump) {
 				r.EXPECT().AddCoreDump(dump).Return(errors.New("error"))
@@ -60,11 +59,11 @@ func TestAddCoreDump(t *testing.T) {
 			error: errors.New("error"),
 		},
 		{
-			name: "add dump timeout error",
+			name: "add dump with timeout error",
 			dump: randomDump[0],
 			stubs: func(r *mock_repositories.MockCoreDumpsRepository, dump entities.CoreDump) {
 				r.EXPECT().AddCoreDump(dump).DoAndReturn(func(dump entities.CoreDump) error {
-					time.Sleep(slowResponse)
+					time.Sleep(6 * time.Second)
 					return errors.New("error")
 				})
 			},
@@ -76,7 +75,8 @@ func TestAddCoreDump(t *testing.T) {
 			test.stubs(r, test.dump)
 
 			err := r.AddCoreDump(test.dump)
-			require.Equal(t, test.error, err)
+
+			assert.Equal(t, test.error, err)
 		})
 	}
 }
@@ -84,13 +84,11 @@ func TestAddCoreDump(t *testing.T) {
 func TestGetCoreDumps(t *testing.T) {
 	t.Parallel()
 
-	slowResponse := time.Second * 6
-
 	c := gomock.NewController(t)
 	defer c.Finish()
 	r := mock_repositories.NewMockCoreDumpsRepository(c)
 
-	sliceOfDumps := generateRandomSliceOfCoreDumps(5)
+	sliceOfDumps := generateSliceOfCoreDumps(5)
 
 	tests := []struct {
 		name  string
@@ -107,7 +105,7 @@ func TestGetCoreDumps(t *testing.T) {
 			error: nil,
 		},
 		{
-			name: "get core dumps error",
+			name: "get core dumps with error",
 			stubs: func(r *mock_repositories.MockCoreDumpsRepository) {
 				r.EXPECT().GetCoreDumps().Return(nil, errors.New("error"))
 			},
@@ -115,10 +113,10 @@ func TestGetCoreDumps(t *testing.T) {
 			error: errors.New("error"),
 		},
 		{
-			name: "get core dumps error timeout",
+			name: "get core dumps with error timeout",
 			stubs: func(r *mock_repositories.MockCoreDumpsRepository) {
 				r.EXPECT().GetCoreDumps().Do(func(options ...interface{}) {
-					time.Sleep(slowResponse)
+					time.Sleep(6 * time.Second)
 				}).Return(nil, errors.New("error"))
 			},
 			dumps: nil,
@@ -130,8 +128,9 @@ func TestGetCoreDumps(t *testing.T) {
 			test.stubs(r)
 
 			res, err := r.GetCoreDumps()
-			require.Equal(t, test.error, err)
-			require.Equal(t, test.dumps, res)
+
+			assert.Equal(t, test.error, err)
+			assert.Equal(t, test.dumps, res)
 		})
 	}
 }
@@ -139,13 +138,11 @@ func TestGetCoreDumps(t *testing.T) {
 func TestGetCoreDumpByID(t *testing.T) {
 	t.Parallel()
 
-	slowResponse := time.Second * 6
-
 	c := gomock.NewController(t)
 	defer c.Finish()
 	r := mock_repositories.NewMockCoreDumpsRepository(c)
 
-	sliceOfDumps := generateRandomSliceOfCoreDumps(1)
+	sliceOfDumps := generateSliceOfCoreDumps(1)
 
 	tests := []struct {
 		name   string
@@ -162,7 +159,7 @@ func TestGetCoreDumpByID(t *testing.T) {
 			error:  nil,
 		},
 		{
-			name: "get core dump by id error",
+			name: "get core dump by id with error",
 			stubs: func(r *mock_repositories.MockCoreDumpsRepository, id string) {
 				r.EXPECT().GetCoreDumpByID(id).Return(entities.CoreDump{}, errors.New("error"))
 			},
@@ -170,10 +167,10 @@ func TestGetCoreDumpByID(t *testing.T) {
 			error:  errors.New("error"),
 		},
 		{
-			name: "get core dump by id error timeout",
+			name: "get core dump by id with timeout error ",
 			stubs: func(r *mock_repositories.MockCoreDumpsRepository, id string) {
 				r.EXPECT().GetCoreDumpByID(id).Do(func(id string) {
-					time.Sleep(slowResponse)
+					time.Sleep(6 * time.Second)
 				}).Return(entities.CoreDump{}, errors.New("error"))
 			},
 			dumpID: "",
@@ -185,16 +182,14 @@ func TestGetCoreDumpByID(t *testing.T) {
 			test.stubs(r, test.dumpID)
 
 			res, err := r.GetCoreDumpByID(test.dumpID)
-			require.Equal(t, test.error, err)
-			require.Equal(t, test.dumpID, res.ID)
+			assert.Equal(t, test.error, err)
+			assert.Equal(t, test.dumpID, res.ID)
 		})
 	}
 }
 
 func TestDeleteCoreDump(t *testing.T) {
 	t.Parallel()
-
-	slowResponse := time.Second * 6
 
 	c := gomock.NewController(t)
 	defer c.Finish()
@@ -215,7 +210,7 @@ func TestDeleteCoreDump(t *testing.T) {
 			error:  nil,
 		},
 		{
-			name: "delete dump error empty id",
+			name: "delete dump- empty id, with error",
 			stubs: func(r *mock_repositories.MockCoreDumpsRepository, dumpID string) {
 				r.EXPECT().DeleteCoreDump(dumpID).Return(errors.New("error"))
 			},
@@ -223,10 +218,10 @@ func TestDeleteCoreDump(t *testing.T) {
 			error:  errors.New("error"),
 		},
 		{
-			name: "delete dump timeout error",
+			name: "delete dump with timeout error",
 			stubs: func(r *mock_repositories.MockCoreDumpsRepository, dumpID string) {
 				r.EXPECT().DeleteCoreDump(dumpID).Do(func(dumpID string) {
-					time.Sleep(slowResponse)
+					time.Sleep(6 * time.Second)
 				}).Return(errors.New("error"))
 			},
 			dumpID: "",
@@ -238,15 +233,13 @@ func TestDeleteCoreDump(t *testing.T) {
 			test.stubs(r, test.dumpID)
 
 			err := r.DeleteCoreDump(test.dumpID)
-			require.Equal(t, test.error, err)
+			assert.Equal(t, test.error, err)
 		})
 	}
 }
 
 func TestDeleteAllCoreDump(t *testing.T) {
 	t.Parallel()
-
-	slowResponse := time.Second * 6
 
 	c := gomock.NewController(t)
 	defer c.Finish()
@@ -266,10 +259,10 @@ func TestDeleteAllCoreDump(t *testing.T) {
 			error: nil,
 		},
 		{
-			name: "delete dump timeout error",
+			name: "delete dump with timeout error",
 			stubs: func(r *mock_repositories.MockCoreDumpsRepository) {
 				r.EXPECT().DeleteAllCoreDumps().Do(func() {
-					time.Sleep(slowResponse)
+					time.Sleep(6 * time.Second)
 				}).Return(errors.New("error"))
 			},
 			error: errors.New("error"),
@@ -280,12 +273,13 @@ func TestDeleteAllCoreDump(t *testing.T) {
 			test.stubs(r)
 
 			err := r.DeleteAllCoreDumps()
-			require.Equal(t, test.error, err)
+
+			assert.Equal(t, test.error, err)
 		})
 	}
 }
 
-func generateRandomSliceOfCoreDumps(quantity int) []entities.CoreDump {
+func generateSliceOfCoreDumps(quantity int) []entities.CoreDump {
 	type osInfo struct {
 		Name    string
 		Arch    string

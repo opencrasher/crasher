@@ -21,7 +21,7 @@ func TestCoreDump(t *testing.T) {
 	timestamp := time.Now()
 	status := SolvedCoreDumpStatus
 	data := "server/internal/app/entities/core_dump_test.go@TestCoreDump:100"
-	extension := &Extension{
+	extension := &CoreDumpExtension{
 		Key:   "key",
 		Value: "value",
 	}
@@ -31,13 +31,13 @@ func TestCoreDump(t *testing.T) {
 	coreDump.SetTimestamp(timestamp)
 	coreDump.SetStatus(status)
 	coreDump.SetData(data)
-	coreDump.SetExtensions(extension.Key, extension.Value)
+	coreDump.AddExtensions(extension.Key, extension.Value)
 
 	assert.Equal(t, osInfo, coreDump.GetOSInfo())
 	assert.Equal(t, appInfo, coreDump.GetAppInfo())
 	assert.Equal(t, timestamp, coreDump.GetTimestamp())
 	assert.Equal(t, status, coreDump.GetStatus())
 	assert.Equal(t, data, coreDump.GetData())
-	assert.Equal(t, extension, coreDump.GetExtension(0))
-	assert.Equal(t, true, len(*coreDump.GetExtensions()) > 0)
+	assert.Equal(t, extension.Key, coreDump.GetExtensions()[0].Key)
+	assert.Equal(t, extension.Value, coreDump.GetExtensions()[0].Value)
 }

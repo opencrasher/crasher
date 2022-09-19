@@ -2,7 +2,7 @@ package app
 
 import "os"
 
-func parseEnvOrDefaultValue(env, defaultValue string) string {
+func ParseEnvOrDefaultValue(env, defaultValue string) string {
 	parsedEnv := os.Getenv(env)
 	if parsedEnv == "" {
 		return defaultValue
