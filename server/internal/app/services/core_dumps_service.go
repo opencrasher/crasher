@@ -8,9 +8,12 @@ import (
 )
 
 type CoreDumpsService interface {
-	GetCoreDumps() ([]entities.CoreDump, error)
+	GetCoreDumps(parameters ...interface{}) ([]entities.CoreDump, error)
+	GetCoreDumpByID(id string) (entities.CoreDump, error)
 	AddCoreDump(coreDump entities.CoreDump) error
+	UpdateCoreDump(parameters ...interface{}) error
 	DeleteCoreDump(id string) error
+	DeleteAllCoreDumps() error
 }
 
 type CoreDumpServiceImpl struct {
@@ -25,14 +28,26 @@ func NewCoreDumpsService(r repositories.CoreDumpsRepository, l *zap.Logger) Core
 	}
 }
 
-func (s *CoreDumpServiceImpl) GetCoreDumps() ([]entities.CoreDump, error) {
+func (s *CoreDumpServiceImpl) GetCoreDumps(parameters ...interface{}) ([]entities.CoreDump, error) {
 	return nil, nil
+}
+
+func (s *CoreDumpServiceImpl) GetCoreDumpByID(id string) (entities.CoreDump, error) {
+	return entities.CoreDump{}, nil
 }
 
 func (s *CoreDumpServiceImpl) AddCoreDump(coreDump entities.CoreDump) error {
 	return nil
 }
 
+func (r *CoreDumpServiceImpl) UpdateCoreDump(parameters ...interface{}) error {
+	return nil
+}
+
 func (s *CoreDumpServiceImpl) DeleteCoreDump(id string) error {
+	return nil
+}
+
+func (s *CoreDumpServiceImpl) DeleteAllCoreDumps() error {
 	return nil
 }
