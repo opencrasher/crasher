@@ -1,0 +1,13 @@
+syntax = "proto3";
+package crasher;
+option go_package = "github.com/opencrasher/crasher/server/pkg/grpc/generated/crasher";
+
+import "app_info.proto";
+import "os_info.proto";
+
+message CoreDump {
+    OSInfo osInfo = 1;
+	AppInfo appInfo = 2;
+    string data = 3;
+	int64 timestamp = 4;
+}
